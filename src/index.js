@@ -4,6 +4,7 @@ import { serverChecker } from './serverChecker.js';
 import { buildOnlineEmbed, buildOfflineEmbed, buildStatusEmbed } from './embedBuilder.js';
 import { loadCommands } from './commands/index.js';
 import { startWebServer } from './web/server.js';
+import './web/routes/index.js'; // register HTTP routes (side-effect import)
 import { startPoller as startZtPoller, stopPoller as stopZtPoller } from './zt/poller.js';
 
 /**
@@ -239,9 +240,17 @@ process.on('SIGTERM', shutdown);
 async function main() {
   console.log('=== Minecraft Server Discord Bot ===\n');
 
-  if (!validateConfig()) {
-    console.error('\n[Bot] Configuration validation failed. Please fix .env file.');
-    process.exit(1);
+  const configValid = validateConfig();
+
+  if (!configValid) {
+    console.error('\n[Bot] Configuration incomplete. Starting in SETUP-ONLY mode.');
+    console.error('[Bot] Open http://127.0.0.1:3000/setup to configure, then restart.');
+    // Force web enabled in setup mode — user needs the wizard.
+    config.web.enabled = true;
+    startWebServer();
+    // Keep the process alive (otherwise Node would exit after main() returns).
+    process.stdin.resume();
+    return; // Do NOT login Discord, do NOT start polling.
   }
 
   console.log('[Config] Configuration validated successfully');
