@@ -107,6 +107,14 @@ export class ServerChecker {
   }
 
   /**
+   * Get timestamp of last online transition
+   * @returns {Date|null}
+   */
+  getLastOnlineTime() {
+    return this.lastOnlineTime;
+  }
+
+  /**
    * Get last server info
    * @returns {Object|null}
    */
