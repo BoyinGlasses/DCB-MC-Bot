@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hướng Dẫn Setup Discord Bot - Minecraft Server Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .step {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 5px solid #5865F2;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #5865F2;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 1.1em;
+        }
+
+        .step h2 {
+            display: inline;
+            color: #1a1a2e;
+            font-size: 1.4em;
+        }
+
+        .step p {
+            margin: 15px 0;
+            color: #555;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        .code-block code {
+            color: #f8f8f2;
+        }
+
+        .code-block .comment {
+            color: #75715e;
+        }
+
+        .code-block .string {
+            color: #e6db74;
+        }
+
+        .code-block .key {
+            color: #66d9ef;
+        }
+
+        .code-block .value {
+            color: #a6e22e;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+
+        .highlight strong {
+            color: #856404;
+        }
+
+        .note {
+            background: #d1ecf1;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #17a2b8;
+            margin: 15px 0;
+        }
+
+        .note strong {
+            color: #0c5460;
+        }
+
+        .warning {
+            background: #f8d7da;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #dc3545;
+            margin: 15px 0;
+        }
+
+        .warning strong {
+            color: #721c24;
+        }
+
+        .image-placeholder {
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+            padding: 40px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 15px 0;
+            color: #6c757d;
+            border: 2px dashed #adb5bd;
+        }
+
+        .image-placeholder .icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: #5865F2;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background: #4752c4;
+        }
+
+        .command {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-family: 'Consolas', monospace;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .command::before {
+            content: ">";
+            color: #5865F2;
+            font-weight: bold;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .checklist li::before {
+            content: "☐";
+            position: absolute;
+            left: 0;
+            color: #5865F2;
+            font-size: 1.2em;
+        }
+
+        .checklist li.checked::before {
+            content: "☑";
+            color: #28a745;
+        }
+
+        .file-tree {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        .file-tree .folder {
+            color: #ffc107;
+        }
+
+        .file-tree .file {
+            color: #28a745;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .footer p {
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 0;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 1.6em;
+            }
+
+            .step {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Hướng Dẫn Setup Discord Bot</h1>
+            <p>Minecraft Server Monitor - Thông báo khi server online/offline</p>
+        </div>
+
+        <div class="content">
+            <!-- Bước 1 -->
+            <div class="step">
+                <span class="step-number">1</span>
+                <h2>Cài đặt Node.js</h2>
+                <p>Bot cần Node.js để chạy. Tải và cài đặt Node.js từ trang chủ:</p>
+                <a href="https://nodejs.org/" target="_blank" class="btn">Tải Node.js</a>
+                <div class="note">
+                    <strong>💡 Lưu ý:</strong> Chọn phiên bản LTS (Long Term Support). Bot yêu cầu Node.js 18 trở lên.
+                </div>
+            </div>
+
+            <!-- Bước 2 -->
+            <div class="step">
+                <span class="step-number">2</span>
+                <h2>Tạo Discord Bot trên Developer Portal</h2>
+                <p>Đầu tiên, bạn cần tạo một Discord Application và Bot:</p>
+                
+                <p><strong>2.1.</strong> Truy cập <a href="https://discord.com/developers/applications" target="_blank">Discord Developer Portal</a> và đăng nhập.</p>
+                
+                <p><strong>2.2.</strong> Click <strong>"New Application"</strong> và đặt tên cho bot (ví dụ: "Minecraft Server Monitor").</p>
+                
+                <div class="image-placeholder">
+                    <div class="icon">📱</div>
+                    <p>Ảnh minh họa: Discord Developer Portal - New Application</p>
+                </div>
+
+                <p><strong>2.3.</strong> Vào tab <strong>"Bot"</strong> ở menu bên trái.</p>
+                
+                <p><strong>2.4.</strong> Click <strong>"Reset Token"</strong> để lấy Bot Token.</p>
+                
+                <div class="warning">
+                    <strong>⚠️ Quan trọng:</strong> Copy và lưu lại Bot Token ngay lập tức! Token chỉ hiện một lần. Nếu mất, phải Reset Token mới.
+                </div>
+                
+                <div class="code-block">
+                    <code>Your Bot Token sẽ có dạng:</code>
+                    <code class="string">MTEwMTQxOTA2MzQ1Njc4OTYxNA.GxXxXx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code>
+                </div>
+            </div>
+
+            <!-- Bước 3 -->
+            <div class="step">
+                <span class="step-number">3</span>
+                <h2>Bật Message Content Intent</h2>
+                <p>Bot cần quyền đọc nội dung tin nhắn để hoạt động:</p>
+                
+                <p><strong>3.1.</strong> Trong tab <strong>"Bot"</strong>, kéo xuống phần <strong>"Privileged Gateway Intents"</strong>.</p>
+                
+                <p><strong>3.2.</strong> Bật <strong>Message Content Intent</strong> (nhấn toggle).</p>
+                
+                <div class="image-placeholder">
+                    <div class="icon">⚙️</div>
+                    <p>Ảnh minh họa: Toggle Message Content Intent</p>
+                </div>
+            </div>
+
+            <!-- Bước 4 -->
+            <div class="step">
+                <span class="step-number">4</span>
+                <h2>Invite Bot vào Discord Server</h2>
+                <p>Bây giờ cần thêm bot vào server Discord của bạn:</p>
+                
+                <p><strong>4.1.</strong> Vào tab <strong>"OAuth2"</strong> → <strong>"URL Generator"</strong>.</p>
+                
+                <p><strong>4.2.</strong> Trong phần <strong>"Scopes"</strong>, tick chọn <strong>bot</strong>.</p>
+                
+                <p><strong>4.3.</strong> Trong phần <strong>"Bot Permissions"</strong>, chọn:</p>
+                <ul>
+                    <li>☑ <strong>Send Messages</strong></li>
+                    <li>☑ <strong>Embed Links</strong></li>
+                </ul>
+                
+                <p><strong>4.4.</strong> Copy URL được tạo và dán vào trình duyệt.</p>
+                
+                <p><strong>4.5.</strong> Chọn server của bạn và click <strong>"Authorize"</strong>.</p>
+                
+                <div class="image-placeholder">
+                    <div class="icon">🔗</div>
+                    <p>Ảnh minh họa: OAuth2 URL Generator</p>
+                </div>
+            </div>
+
+            <!-- Bước 5 -->
+            <div class="step">
+                <span class="step-number">5</span>
+                <h2>Lấy Channel ID</h2>
+                <p>Bot cần Channel ID để gửi thông báo:</p>
+                
+                <p><strong>5.1.</strong> Trong Discord, vào <strong>Settings</strong> → <strong>Advanced</strong> → Bật <strong>Developer Mode</strong>.</p>
+                
+                <p><strong>5.2.</strong> Quay lại server, right-click (nhấn chuột phải) vào channel mà bạn muốn bot gửi thông báo.</p>
+                
+                <p><strong>5.3.</strong> Click <strong>"Copy Channel ID"</strong>.</p>
+                
+                <div class="note">
+                    <strong>💡 Mẹo:</strong> Nên tạo một channel riêng cho thông báo bot (ví dụ: #server-status).
+                </div>
+            </div>
+
+            <!-- Bước 6 -->
+            <div class="step">
+                <span class="step-number">6</span>
+                <h2>Cài đặt Project</h2>
+                <p>Tải project về máy:</p>
+                
+                <p><strong>6.1.</strong> Mở Terminal/Command Prompt và điều hướng đến thư mục project:</p>
+                <div class="command">cd D:\minecraftserverbot</div>
+                
+                <p><strong>6.2.</strong> Cài đặt dependencies:</p>
+                <div class="command">npm install</div>
+                
+                <p>Đợi cho đến khi cài đặt hoàn tất...</p>
+            </div>
+
+            <!-- Bước 7 -->
+            <div class="step">
+                <span class="step-number">7</span>
+                <h2>Tạo file .env</h2>
+                <p>Tạo file cấu hình cho bot:</p>
+                
+                <p><strong>7.1.</strong> Trong thư mục project, tạo file tên <strong>.env</strong> (có dấu chấm đằng trước).</p>
+                
+                <p><strong>7.2.</strong> Copy nội dung sau vào file:</p>
+                <div class="code-block">
+<code><span class="comment"># Discord Bot Configuration</span>
+<span class="key">DISCORD_BOT_TOKEN</span>=<span class="value">PASTE_BOT_TOKEN_CUA_BAN_TAI_DAY</span>
+
+<span class="comment"># Channel ID cho thông báo</span>
+<span class="key">DISCORD_CHANNEL_ID</span>=<span class="value">PASTE_CHANNEL_ID_TAI_DAY</span>
+
+<span class="comment"># Minecraft Server Address</span>
+<span class="key">MC_SERVER_HOST</span>=<span class="value">127.0.0.1</span>
+<span class="key">MC_SERVER_PORT</span>=<span class="value">25565</span>
+
+<span class="comment"># Polling interval (ms) - 30000 = 30 giay</span>
+<span class="key">POLLING_INTERVAL_MS</span>=<span class="value">30000</span></code>
+                </div>
+                
+                <p><strong>7.3.</strong> Thay thế các giá trị:</p>
+                <ul>
+                    <li><code>PASTE_BOT_TOKEN_CUA_BAN_TAI_DAY</code> → Bot Token đã copy ở Bước 2</li>
+                    <li><code>PASTE_CHANNEL_ID_TAI_DAY</code> → Channel ID đã copy ở Bước 5</li>
+                </ul>
+                
+                <div class="highlight">
+                    <strong>⚠️ Lưu ý:</strong> File .env chứa token bảo mật. Không chia sẻ file này với ai!
+                </div>
+            </div>
+
+            <!-- Bước 8 -->
+            <div class="step">
+                <span class="step-number">8</span>
+                <h2>Chạy Bot</h2>
+                <p>Tất cả đã sẵn sàng! Chạy bot:</p>
+                <div class="command">npm start</div>
+                
+                <p>Nếu thành công, bạn sẽ thấy:</p>
+                <div class="code-block">
+<code>=== Minecraft Server Discord Bot ===
+
+[Config] Configuration validated successfully
+[Config] Server: 127.0.0.1:25565
+[Config] Polling interval: 30000ms
+[Bot] Logging in to Discord...
+[Discord] Bot logged in as Minecraft Server Monitor#1234
+[Discord] Target channel: server-status
+[Discord] Embed sent successfully
+[Bot] Polling started - interval: 30000ms</code>
+                </div>
+                
+                <div class="note">
+                    <strong>✅ Hoàn tất!</strong> Bot đã chạy và sẽ thông báo khi Minecraft server online/offline.
+                </div>
+            </div>
+
+            <!-- Chạy khi server Minecraft bật -->
+            <div class="step">
+                <span class="step-number">9</span>
+                <h2>Bật Minecraft Server</h2>
+                <p>Khi bạn bật Fabric server lên:</p>
+                <ul>
+                    <li>Bot sẽ tự động phát hiện sau tối đa 30 giây</li>
+                    <li>Thông báo "🟢 Server is ONLINE!" sẽ được gửi vào Discord</li>
+                    <li>Kèm theo: Server name, version, players, ping...</li>
+                </ul>
+                
+                <p>Khi server tắt:</p>
+                <ul>
+                    <li>Bot phát hiện và gửi "🔴 Server is OFFLINE"</li>
+                </ul>
+            </div>
+
+            <!-- Troubleshooting -->
+            <div class="step">
+                <span class="step-number">!</span>
+                <h2>Xử lý lỗi thường gặp</h2>
+                
+                <div class="warning">
+                    <strong>Bot không kết nối được?</strong><br>
+                    → Kiểm tra Bot Token đúng chưa<br>
+                    → Kiểm tra Bot đã được invite vào server chưa<br>
+                    → Kiểm tra đã bật Message Content Intent chưa
+                </div>
+                
+                <div class="warning">
+                    <strong>Không lấy được thông tin server?</strong><br>
+                    → Kiểm tra Minecraft server đã bật chưa<br>
+                    → Kiểm tra MC_SERVER_HOST và MC_SERVER_PORT đúng chưa<br>
+                    → Đảm bảo server đang bind đúng port
+                </div>
+                
+                <div class="warning">
+                    <strong>Channel not found?</strong><br>
+                    → Kiểm tra DISCORD_CHANNEL_ID đúng chưa<br>
+                    → Bot phải có quyền truy cập vào channel đó
+                </div>
+            </div>
+
+            <!-- Checklist -->
+            <div class="step">
+                <h2>📋 Checklist Trước Khi Chạy</h2>
+                <ul class="checklist">
+                    <li class="checked">Đã cài Node.js</li>
+                    <li class="checked">Đã tạo Discord Application và Bot</li>
+                    <li class="checked">Đã copy Bot Token</li>
+                    <li class="checked">Đã bật Message Content Intent</li>
+                    <li class="checked">Đã invite Bot vào server</li>
+                    <li class="checked">Đã bật Developer Mode và copy Channel ID</li>
+                    <li class="checked">Đã chạy npm install</li>
+                    <li class="checked">Đã tạo file .env với đầy đủ thông tin</li>
+                    <li class="checked">Đã chạy npm start</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Hướng dẫn được tạo cho <strong>Minecraft Server Discord Bot</strong></p>
+            <p>Project: <a href="https://github.com/" target="_blank">minecraftserverbot</a></p>
+        </div>
+    </div>
+</body>
+</html>
