@@ -1,0 +1,183 @@
+/* Custom styles for Minecraft Server Bot dashboard */
+
+:root {
+  --mc-primary: #5b9c3f;          /* Minecraft grass green */
+  --mc-secondary: #7a7a7a;
+  --mc-dark: #1a1a1a;
+  --mc-accent: #ffaa00;
+}
+
+body {
+  --pico-font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+header.mc-header {
+  background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+  border-bottom: 3px solid var(--mc-primary);
+  padding: 1.5rem 0;
+  margin-bottom: 2rem;
+}
+
+header.mc-header h1 {
+  margin: 0;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+header.mc-header h1::before {
+  content: "⛏️";
+  font-size: 1.5em;
+}
+
+header.mc-header small {
+  color: var(--mc-accent);
+  font-weight: normal;
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.7em;
+}
+
+nav.mc-nav {
+  background: var(--pico-card-background-color);
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
+  padding: 0.5rem 1rem;
+  margin-bottom: 2rem;
+}
+
+nav.mc-nav ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+nav.mc-nav a {
+  text-decoration: none;
+  color: var(--pico-color);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--pico-border-radius);
+}
+
+nav.mc-nav a:hover, nav.mc-nav a.active {
+  background: var(--pico-muted-border-color);
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.status-online { background: rgba(91, 156, 63, 0.2); color: #2d6a1f; }
+.status-offline { background: rgba(220, 50, 50, 0.2); color: #a02020; }
+.status-pending { background: rgba(255, 170, 0, 0.2); color: #885500; }
+
+[data-theme="dark"] .status-online { color: #5b9c3f; }
+[data-theme="dark"] .status-offline { color: #ff6464; }
+[data-theme="dark"] .status-pending { color: #ffaa00; }
+
+.metric-card {
+  background: var(--pico-card-background-color);
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.metric-card .label {
+  font-size: 0.85em;
+  color: var(--pico-muted-color);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metric-card .value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+  color: var(--pico-color);
+}
+
+.metric-card .value.online { color: var(--mc-primary); }
+.metric-card .value.offline { color: #d32f2f; }
+
+.guide-step {
+  background: var(--pico-card-background-color);
+  border: 1px solid var(--pico-muted-border-color);
+  border-left: 4px solid var(--mc-primary);
+  border-radius: var(--pico-border-radius);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.guide-step h3 {
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.guide-step .step-num {
+  background: var(--mc-primary);
+  color: white;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9em;
+  font-weight: 700;
+}
+
+code.code-block {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 0.75rem 1rem;
+  border-radius: var(--pico-border-radius);
+  font-family: var(--pico-font-family-monospace);
+  display: block;
+  overflow-x: auto;
+  margin: 0.5rem 0;
+}
+
+.copy-btn {
+  cursor: pointer;
+  font-size: 0.85em;
+  padding: 0.25rem 0.75rem;
+}
+
+.zt-network-id {
+  font-family: var(--pico-font-family-monospace);
+  font-size: 1.1em;
+  background: var(--pico-code-background-color);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--pico-border-radius);
+  user-select: all;
+}
+
+footer.mc-footer {
+  margin-top: 3rem;
+  padding: 1.5rem 0;
+  text-align: center;
+  color: var(--pico-muted-color);
+  font-size: 0.85em;
+  border-top: 1px solid var(--pico-muted-border-color);
+}
+
+.htmx-indicator {
+  display: none;
+}
+.htmx-request .htmx-indicator {
+  display: inline;
+}
+.htmx-request.htmx-indicator {
+  display: inline;
+}

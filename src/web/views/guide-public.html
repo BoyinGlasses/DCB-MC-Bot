@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Join Server - Hướng dẫn cho Player</title>
+  <link rel="stylesheet" href="/vendor/pico.min.css">
+  <link rel="stylesheet" href="/static/css/custom.css">
+</head>
+<body>
+  <header class="mc-header">
+    <div class="container">
+      <h1>
+        {{serverName}}
+        <small>Hướng dẫn kết nối Minecraft Server</small>
+      </h1>
+    </div>
+  </header>
+
+  <main class="container">
+    <article>
+      <header>
+        <h2>🎮 Chào mừng!</h2>
+        <p>Server Minecraft đang hoạt động và sẵn sàng cho bạn tham gia.</p>
+      </header>
+
+      <div class="guide-step">
+        <h3><span class="step-num">1</span> Mở Minecraft</h3>
+        <p>Khởi động <strong>Minecraft Java Edition</strong> (phiên bản Bedrock không hỗ trợ).</p>
+      </div>
+
+      <div class="guide-step">
+        <h3><span class="step-num">2</span> Vào Multiplayer</h3>
+        <p>Từ menu chính, click <strong>Multiplayer</strong> → <strong>Add Server</strong>.</p>
+      </div>
+
+      <div class="guide-step">
+        <h3><span class="step-num">3</span> Nhập địa chỉ server</h3>
+        <p><strong>Server Name:</strong> bất kỳ (VD: "My Server")</p>
+        <p><strong>Server Address:</strong></p>
+        <code class="code-block" id="server-address">{{publicHost}}:{{serverPort}}</code>
+        <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('server-address').textContent.trim())">📋 Copy</button>
+      </div>
+
+      <div class="guide-step">
+        <h3><span class="step-num">4</span> Kết nối</h3>
+        <p>Click <strong>Done</strong> → chọn server vừa tạo → <strong>Join Server</strong>.</p>
+        <p>🎉 Xong! Chúc bạn chơi vui vẻ!</p>
+      </div>
+    </article>
+
+    <article>
+      <header>
+        <h3>🆘 Gặp vấn đề?</h3>
+      </header>
+      <ul>
+        <li><strong>Connection timed out:</strong> Kiểm tra firewall, antivirus có chặn port {{serverPort}} không</li>
+        <li><strong>Server outdated:</strong> Server dùng version khác, hỏi admin về version chính xác</li>
+        <li><strong>Unknown host:</strong> Kiểm tra lại địa chỉ IP/hostname</li>
+        <li>Liên hệ admin qua Discord để được hỗ trợ</li>
+      </ul>
+    </article>
+  </main>
+
+  <footer class="mc-footer">
+    <p>Minecraft Server Bot v2.0 · Public Guide</p>
+  </footer>
+</body>
+</html>

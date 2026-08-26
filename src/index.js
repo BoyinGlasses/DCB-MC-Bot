@@ -1,7 +1,10 @@
-import { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } from 'discord.js';
+import { Client, GatewayIntentBits, REST, Routes } from 'discord.js';
 import { config, validateConfig } from './config.js';
 import { serverChecker } from './serverChecker.js';
-import { buildOnlineEmbed, buildOfflineEmbed, buildStatusEmbed, buildPlayerListEmbed, buildServerInfoEmbed, formatUptime } from './embedBuilder.js';
+import { buildOnlineEmbed, buildOfflineEmbed, buildStatusEmbed } from './embedBuilder.js';
+import { loadCommands } from './commands/index.js';
+import { startWebServer } from './web/server.js';
+import { startPoller as startZtPoller, stopPoller as stopZtPoller } from './zt/poller.js';
 
 /**
  * Discord bot client
@@ -9,346 +12,34 @@ import { buildOnlineEmbed, buildOfflineEmbed, buildStatusEmbed, buildPlayerListE
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
+    GatewayIntentBits.DirectMessages,
   ],
 });
 
 /**
  * REST API for slash commands
  */
-const rest = new REST({ version: '10' }).setToken(config.discord.token);
+let rest = null;
+let commandMap = new Map();
 
 /**
- * Register slash commands
+ * Register slash commands with Discord
  */
 async function registerSlashCommands() {
-  const commands = [
-    new SlashCommandBuilder()
-      .setName('showplayer')
-      .setDescription('Hiển thị danh sách người chơi đang online trên server')
-      .toJSON(),
-    new SlashCommandBuilder()
-      .setName('serverstatus')
-      .setDescription('Kiểm tra trạng thái hiện tại của Minecraft server')
-      .toJSON(),
-    new SlashCommandBuilder()
-      .setName('uptime')
-      .setDescription('Hiển thị thời gian server đã chạy liên tục')
-      .toJSON(),
-    new SlashCommandBuilder()
-      .setName('ip')
-      .setDescription('Lấy địa chỉ Minecraft server để kết nối nhanh')
-      .toJSON(),
-    new SlashCommandBuilder()
-      .setName('ping')
-      .setDescription('Kiểm tra ping/latency hiện tại tới Minecraft server')
-      .toJSON(),
-    new SlashCommandBuilder()
-      .setName('lastcheck')
-      .setDescription('Hiển thị thời điểm bot kiểm tra server lần gần nhất')
-      .toJSON(),
-    new SlashCommandBuilder()
-      .setName('serverinfo')
-      .setDescription('Hiển thị thông tin chi tiết về Minecraft server (version, MOTD, sample players)')
-      .toJSON(),
-  ];
+  if (!rest) {
+    rest = new REST({ version: '10' }).setToken(config.discord.token);
+  }
+
+  const commandsData = Array.from(commandMap.values()).map(cmd => cmd.data.toJSON());
 
   try {
     await rest.put(
       Routes.applicationCommands(client.user.id),
-      { body: commands }
+      { body: commandsData }
     );
-    console.log('[Discord] Slash commands registered successfully');
+    console.log(`[Discord] Registered ${commandsData.length} slash commands`);
   } catch (error) {
     console.error('[Discord] Failed to register slash commands:', error.message);
-  }
-}
-
-/**
- * Handle slash command interactions
- */
-async function handleSlashCommand(interaction) {
-  const { commandName } = interaction;
-
-  if (commandName === 'showplayer') {
-    await interaction.deferReply();
-
-    try {
-      const { online, info } = await serverChecker.checkServer();
-
-      if (!online || !info) {
-        await interaction.editReply({
-          embeds: [{
-            title: '🔴 Server OFFLINE',
-            description: 'Server hiện không online.',
-            color: 0xff0000,
-          }],
-        });
-        return;
-      }
-
-      const embed = buildPlayerListEmbed(info);
-      await interaction.editReply({ embeds: [embed] });
-    } catch (error) {
-      console.error('[Bot] Error in /showplayer:', error.message);
-      await interaction.editReply({
-        content: 'Đã xảy ra lỗi khi lấy thông tin server.',
-      });
-    }
-  }
-
-  if (commandName === 'serverstatus') {
-    await interaction.deferReply();
-
-    try {
-      const { online, info } = await serverChecker.checkServer();
-
-      if (online && info) {
-        const uptime = serverChecker.getUptime();
-        await interaction.editReply({ embeds: [buildOnlineEmbed(info, uptime)] });
-      } else {
-        await interaction.editReply({ embeds: [buildOfflineEmbed(new Date())] });
-      }
-    } catch (error) {
-      console.error('[Bot] Error in /serverstatus:', error.message);
-      await interaction.editReply({
-        content: 'Đã xảy ra lỗi khi lấy thông tin server.',
-      });
-    }
-  }
-
-  if (commandName === 'uptime') {
-    await interaction.deferReply();
-
-    try {
-      const { online, info } = await serverChecker.checkServer();
-
-      if (!online || !info) {
-        await interaction.editReply({
-          embeds: [{
-            title: '🔴 Server OFFLINE',
-            description: 'Server hiện không online nên không có uptime.',
-            color: 0xff0000,
-          }],
-        });
-        return;
-      }
-
-      const uptimeMs = serverChecker.getUptime();
-      const lastOnline = serverChecker.getLastOnlineTime
-        ? serverChecker.getLastOnlineTime()
-        : null;
-
-      const embed = {
-        title: '⏱️ Server Uptime',
-        color: 0x00ff00,
-        timestamp: new Date().toISOString(),
-        fields: [
-          {
-            name: '⏳ Đã chạy được',
-            value: formatUptime(uptimeMs),
-            inline: true,
-          },
-          {
-            name: '🕐 Lần online gần nhất',
-            value: lastOnline ? `<t:${Math.floor(lastOnline.getTime() / 1000)}:R>` : 'Không rõ',
-            inline: true,
-          },
-        ],
-        footer: { text: 'Minecraft Server Monitor' },
-      };
-
-      await interaction.editReply({ embeds: [embed] });
-    } catch (error) {
-      console.error('[Bot] Error in /uptime:', error.message);
-      await interaction.editReply({
-        content: 'Đã xảy ra lỗi khi lấy thông tin uptime.',
-      });
-    }
-  }
-
-  if (commandName === 'ip') {
-    await interaction.deferReply({ ephemeral: true });
-
-    try {
-      const { online } = await serverChecker.checkServer();
-      const address = `${config.minecraft.host}:${config.minecraft.port}`;
-
-      const embed = {
-        title: '🌐 Địa chỉ Minecraft Server',
-        color: online ? 0x00ff00 : 0xffaa00,
-        description:
-          'Copy địa chỉ bên dưới rồi dán vào **Multiplayer → Add Server** trong Minecraft.',
-        fields: [
-          {
-            name: '📋 Address',
-            value: `\`\`\`${address}\`\`\``,
-            inline: false,
-          },
-          {
-            name: '🟢 Trạng thái',
-            value: online ? 'Server đang **online**' : 'Server đang **offline** — vẫn copy được nhé',
-            inline: true,
-          },
-        ],
-        footer: { text: 'Minecraft Server Monitor' },
-      };
-
-      await interaction.editReply({ embeds: [embed] });
-    } catch (error) {
-      console.error('[Bot] Error in /ip:', error.message);
-      await interaction.editReply({
-        content: 'Đã xảy ra lỗi khi lấy địa chỉ server.',
-      });
-    }
-  }
-
-  if (commandName === 'ping') {
-    await interaction.deferReply();
-
-    try {
-      const { online, info } = await serverChecker.checkServer();
-
-      if (!online || !info) {
-        await interaction.editReply({
-          embeds: [{
-            title: '🔴 Server OFFLINE',
-            description: 'Không thể đo ping vì server đang offline.',
-            color: 0xff0000,
-          }],
-        });
-        return;
-      }
-
-      const latency = info.latency ?? 0;
-      let quality;
-      let color;
-      if (latency < 80) {
-        quality = '🟢 Tuyệt vời';
-        color = 0x00ff00;
-      } else if (latency < 150) {
-        quality = '🟡 Tốt';
-        color = 0xffaa00;
-      } else if (latency < 300) {
-        quality = '🟠 Tệ';
-        color = 0xff8800;
-      } else {
-        quality = '🔴 Rất tệ';
-        color = 0xff0000;
-      }
-
-      const embed = {
-        title: '📡 Ping tới Minecraft Server',
-        color,
-        fields: [
-          {
-            name: '⏱️ Latency',
-            value: `${latency}ms`,
-            inline: true,
-          },
-          {
-            name: '📊 Chất lượng',
-            value: quality,
-            inline: true,
-          },
-        ],
-        footer: { text: 'Minecraft Server Monitor' },
-        timestamp: new Date().toISOString(),
-      };
-
-      await interaction.editReply({ embeds: [embed] });
-    } catch (error) {
-      console.error('[Bot] Error in /ping:', error.message);
-      await interaction.editReply({
-        content: 'Đã xảy ra lỗi khi đo ping.',
-      });
-    }
-  }
-
-  if (commandName === 'lastcheck') {
-    await interaction.deferReply();
-
-    try {
-      const lastCheck = serverChecker.getLastCheckTime();
-      const lastInfo = serverChecker.getLastServerInfo();
-      const currentState = serverChecker.getCurrentState();
-
-      if (!lastCheck) {
-        await interaction.editReply({
-          embeds: [{
-            title: '❓ Chưa có dữ liệu',
-            description: 'Bot chưa thực hiện poll nào. Vui lòng đợi một chút.',
-            color: 0x808080,
-          }],
-        });
-        return;
-      }
-
-      const stateLabel = currentState === 'online'
-        ? '🟢 Online'
-        : currentState === 'offline'
-          ? '🔴 Offline'
-          : '⚪ Unknown';
-      const lastInfoStatus = lastInfo ? '🟢 Online' : '🔴 Offline';
-
-      const unix = Math.floor(lastCheck.getTime() / 1000);
-      const embed = {
-        title: '🕐 Lần kiểm tra gần nhất',
-        color: lastInfo ? 0x00ff00 : 0xff0000,
-        fields: [
-          {
-            name: '⏰ Thời điểm',
-            value: `<t:${unix}:F>\n(<t:${unix}:R>)`,
-            inline: false,
-          },
-          {
-            name: '📊 Kết quả lúc đó',
-            value: lastInfoStatus,
-            inline: true,
-          },
-          {
-            name: '📡 State hiện tại',
-            value: stateLabel,
-            inline: true,
-          },
-        ],
-        footer: { text: 'Minecraft Server Monitor' },
-        timestamp: new Date().toISOString(),
-      };
-
-      await interaction.editReply({ embeds: [embed] });
-    } catch (error) {
-      console.error('[Bot] Error in /lastcheck:', error.message);
-      await interaction.editReply({
-        content: 'Đã xảy ra lỗi khi lấy thông tin lần kiểm tra.',
-      });
-    }
-  }
-
-  if (commandName === 'serverinfo') {
-    await interaction.deferReply();
-
-    try {
-      const { online, info } = await serverChecker.checkServer();
-
-      if (!online || !info) {
-        await interaction.editReply({
-          embeds: [{
-            title: '🔴 Server OFFLINE',
-            description: 'Không thể lấy thông tin chi tiết vì server đang offline.',
-            color: 0xff0000,
-          }],
-        });
-        return;
-      }
-
-      const embed = buildServerInfoEmbed(info);
-      await interaction.editReply({ embeds: [embed] });
-    } catch (error) {
-      console.error('[Bot] Error in /serverinfo:', error.message);
-      await interaction.editReply({
-        content: 'Đã xảy ra lỗi khi lấy thông tin server.',
-      });
-    }
   }
 }
 
@@ -385,16 +76,10 @@ async function sendEmbed(embed) {
  */
 async function pollServer() {
   try {
-    // Check server status
     const { online, info } = await serverChecker.checkServer();
-    
-    // Evaluate state change
     const { shouldNotify, newState } = serverChecker.evaluateState(online);
-    
-    // Update state
     serverChecker.updateState(newState);
 
-    // Send notification if state changed
     if (shouldNotify) {
       if (online && info) {
         const uptime = serverChecker.getUptime();
@@ -408,7 +93,6 @@ async function pollServer() {
         await sendEmbed(embed);
       }
     } else {
-      // Log current status (useful for debugging)
       const state = serverChecker.getCurrentState();
       console.log(`[Server] Status: ${state} (no state change)`);
     }
@@ -421,15 +105,10 @@ async function pollServer() {
  * Start polling mechanism
  */
 function startPolling() {
-  // Clear any existing interval
   if (pollingInterval) {
     clearInterval(pollingInterval);
   }
-
-  // Initial check
   pollServer();
-
-  // Set up interval
   pollingInterval = setInterval(pollServer, config.polling.intervalMs);
   console.log(`[Bot] Polling started - interval: ${config.polling.intervalMs}ms`);
 }
@@ -456,12 +135,10 @@ client.on('ready', async () => {
 
   // Find target channel
   const channel = client.channels.cache.get(config.discord.channelId);
-  
   if (!channel) {
     console.error(`[Discord] Channel ${config.discord.channelId} not found`);
     return;
   }
-
   if (!channel.isTextBased()) {
     console.error(`[Discord] Channel ${config.discord.channelId} is not a text channel`);
     return;
@@ -472,11 +149,26 @@ client.on('ready', async () => {
 
   // Send ready message
   const readyEmbed = buildStatusEmbed('ready');
-  readyEmbed.description = `Monitoring server: \`${config.minecraft.host}:${config.minecraft.port}\``;
+  readyEmbed.description =
+    `Monitoring server: \`${config.minecraft.host}:${config.minecraft.port}\`\n` +
+    `Exposure: \`${config.minecraft.exposureMode}\`\n` +
+    (config.web.enabled ? `Web: http://${config.web.host}:${config.web.port}` : '');
   await sendEmbed(readyEmbed);
 
-  // Start polling
+  // Start MC server polling
   startPolling();
+
+  // Start web dashboard
+  if (config.web.enabled) {
+    startWebServer();
+  } else {
+    console.log('[Web] Disabled by config');
+  }
+
+  // Start ZeroTier poller
+  if (config.zerotier.enabled) {
+    startZtPoller(client);
+  }
 });
 
 /**
@@ -491,7 +183,27 @@ client.on('error', (error) => {
  */
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
-  await handleSlashCommand(interaction);
+
+  const cmd = commandMap.get(interaction.commandName);
+  if (!cmd) {
+    console.warn(`[Bot] Unknown command: ${interaction.commandName}`);
+    return;
+  }
+
+  try {
+    await cmd.execute(interaction);
+  } catch (error) {
+    console.error(`[Bot] Error executing /${interaction.commandName}:`, error.message);
+    const reply = {
+      content: 'Đã xảy ra lỗi khi xử lý command.',
+      ephemeral: true,
+    };
+    if (interaction.deferred || interaction.replied) {
+      await interaction.followUp(reply);
+    } else {
+      await interaction.reply(reply);
+    }
+  }
 });
 
 /**
@@ -500,6 +212,7 @@ client.on('interactionCreate', async (interaction) => {
 client.on('disconnect', () => {
   console.log('[Discord] Bot disconnected');
   stopPolling();
+  stopZtPoller();
 });
 
 /**
@@ -508,15 +221,15 @@ client.on('disconnect', () => {
 function shutdown() {
   console.log('\n[Bot] Shutting down...');
   stopPolling();
-  
+  stopZtPoller();
+
   if (client.isReady()) {
     client.destroy();
   }
-  
+
   process.exit(0);
 }
 
-// Handle process signals
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
@@ -526,7 +239,6 @@ process.on('SIGTERM', shutdown);
 async function main() {
   console.log('=== Minecraft Server Discord Bot ===\n');
 
-  // Validate configuration
   if (!validateConfig()) {
     console.error('\n[Bot] Configuration validation failed. Please fix .env file.');
     process.exit(1);
@@ -536,6 +248,11 @@ async function main() {
   console.log(`[Config] Server: ${config.minecraft.host}:${config.minecraft.port}`);
   console.log(`[Config] Polling interval: ${config.polling.intervalMs}ms`);
 
+  // Load all slash commands
+  console.log('[Bot] Loading slash commands...');
+  commandMap = await loadCommands();
+  console.log(`[Bot] Loaded ${commandMap.size} slash commands\n`);
+
   // Login to Discord
   console.log('[Bot] Logging in to Discord...');
   client.login(config.discord.token).catch((error) => {
@@ -544,5 +261,4 @@ async function main() {
   });
 }
 
-// Run the bot
 main();

@@ -1,135 +1,144 @@
-# Minecraft Server Discord Bot
+# 🎮 Minecraft Server Discord Bot v2.0
 
-Discord bot thông báo khi Minecraft server (Fabric) online/offline, kèm rich server info.
+Discord bot để monitor Minecraft server + **web dashboard** + **ZeroTier join flow** (optional).
 
-## Tính năng
+## ✨ Tính năng
 
-- 🟢 Thông báo khi server online với đầy đủ thông tin:
-  - Server Name (MOTD)
-  - Minecraft Version
-  - Số người chơi đang online
-  - Ping/Latency
-  - Server Address
-  - Uptime
-- 🔴 Thông báo khi server offline
-- ⏱️ Không spam - chỉ thông báo khi trạng thái thay đổi
-- 🔧 Dễ cấu hình qua file `.env`
-- 🎮 Slash commands:
-  - `/showplayer` - Xem danh sách người chơi đang online
-  - `/serverstatus` - Kiểm tra trạng thái server
+### Core (v1)
+- 📡 **Monitor** Minecraft server liên tục, thông báo online/offline lên Discord
+- 📊 **Slash commands**: `/serverstatus`, `/uptime`, `/ip`, `/ping`, `/showplayer`, `/lastcheck`, `/serverinfo`
+- ⚙️ Config qua `.env` (Discord token, MC server address, polling interval)
 
-## Yêu cầu
+### Mới ở v2.0
+- 🌐 **Web Dashboard** (localhost) — xem live status, edit config, restart bot
+- 📝 **Setup Wizard** — không cần edit `.env` thủ công, điền form trên web
+- 📜 **Player Guide page** (`/guide`) — hướng dẫn cho player mới (auto-detect public/private mode)
+- 🔒 **ZeroTier flow** (optional, cho private servers) — user tự request, admin approve qua slash command, bot auto-DM IP
+- 🛡️ **Admin commands**: `/zt-approve`, `/zt-deny`, `/zt-list`, `/zt-myinfo`
+- 📋 **Audit log** — track tất cả ZeroTier approvals
+- 🔄 **Auto-polling** — bot check ZeroTier mỗi 60s, tự gửi IP cho user nếu admin approve thẳng trong Central UI
 
-- Node.js 18+
-- Discord bot token (từ [Discord Developer Portal](https://discord.com/developers/applications))
-- Minecraft server chạy Fabric (hoặc bất kỳ server nào hỗ trợ ping protocol)
-
-## Cài đặt
-
-### 1. Clone/Download project
+## 📦 Cài đặt
 
 ```bash
+git clone <repo>
 cd minecraftserverbot
-```
-
-### 2. Cài đặt dependencies
-
-```bash
 npm install
-```
-
-### 3. Tạo file `.env`
-
-Copy file `.env.example` và điền thông tin:
-
-```bash
 cp .env.example .env
-```
-
-### 4. Cấu hình `.env`
-
-Mở file `.env` và điền các giá trị:
-
-```env
-# Discord Bot Token - lấy từ Discord Developer Portal
-DISCORD_BOT_TOKEN=your_bot_token_here
-
-# Channel ID - Enable Developer Mode trong Discord, right-click channel, Copy Channel ID
-DISCORD_CHANNEL_ID=123456789012345678
-
-# Minecraft Server Address
-MC_SERVER_HOST=your.server.ip
-MC_SERVER_PORT=25565
-
-# Polling interval (ms) - 30000 = 30 giây
-POLLING_INTERVAL_MS=30000
-```
-
-### 5. Tạo Discord Bot
-
-1. Vào [Discord Developer Portal](https://discord.com/developers/applications)
-2. Click "New Application" → đặt tên
-3. Vào "Bot" → "Reset Token" để lấy token
-4. Bật **Message Content Intent** trong Bot settings
-5. Invite bot vào server:
-   - Vào "OAuth2" → "URL Generator"
-   - Chọn scopes: `bot`
-   - Chọn permissions: `Send Messages`, `Embed Links`
-   - Copy URL và mở trong trình duyệt
-
-### 6. Chạy bot
-
-```bash
 npm start
 ```
 
-## Chạy với PM2 (Production)
+Sau khi chạy lần đầu, mở browser: **http://127.0.0.1:3000** — sẽ redirect tới Setup Wizard nếu `.env` chưa có config.
 
-```bash
-# Cài đặt PM2
-npm install -g pm2
+## ⚙️ Cấu hình
 
-# Chạy bot
-pm2 start src/index.js --name minecraft-bot
+### Bằng Setup Wizard (khuyến nghị)
+1. Chạy `npm start` (lần đầu sẽ fail vì thiếu config — OK)
+2. Mở http://127.0.0.1:3000/setup
+3. Điền form, click **Lưu**
+4. `Ctrl+C` rồi `npm start` lại
 
-# Auto-restart khi crash
-pm2 startup
+### Bằng tay (legacy)
+Sửa file `.env` theo hướng dẫn trong `.env.example`.
 
-# Lưu process list
-pm2 save
+## 🎮 Slash Commands
+
+### Cho mọi người
+| Command | Mô tả |
+|---------|-------|
+| `/serverstatus` | Xem trạng thái server hiện tại |
+| `/uptime` | Server đã chạy được bao lâu |
+| `/ip` | Lấy địa chỉ Minecraft |
+| `/ping` | Latency hiện tại |
+| `/showplayer` | Danh sách player online |
+| `/lastcheck` | Lần check gần nhất |
+| `/serverinfo` | Thông tin chi tiết (version, MOTD) |
+| `/zt-request` | (Private mode) Gửi yêu cầu join ZeroTier |
+| `/zt-myinfo` | Xem trạng thái yêu cầu ZeroTier của mình |
+
+### Cho admin
+| Command | Mô tả |
+|---------|-------|
+| `/zt-approve <id>` | Duyệt yêu cầu ZeroTier + auto-DM IP |
+| `/zt-deny <id> [reason]` | Từ chối |
+| `/zt-list` | List pending requests |
+
+## 🌐 ZeroTier Flow (Private Mode)
+
+Khi `MC_EXPOSURE_MODE=private`, server cần ZeroTier để player join.
+
+### Setup phía admin
+1. Tạo ZeroTier network tại https://my.zerotier.com
+2. Lấy **Network ID** + **API Token** (Account → API Tokens)
+3. Điền vào Setup Wizard → bật ZeroTier
+4. Authorize chính máy chủ Minecraft trong ZeroTier Central
+
+### Flow cho player mới
+1. Vào `/guide` trên web → đọc hướng dẫn
+2. Tải ZeroTier, tạo account
+3. Join network (paste Network ID)
+4. Lấy Node ID (10 ký tự hex)
+5. DM bot: `/zt-request zt-id:<id> mc-username:<name>`
+6. Admin thấy notification → dùng `/zt-approve <request-id>`
+7. Bot tự authorize qua API + DM IP cho user
+8. User mở Minecraft → connect
+
+## 📁 Cấu trúc
+
+```
+src/
+├── index.js              # Entry point
+├── config.js             # Load .env + validate
+├── serverChecker.js      # Minecraft server polling
+├── embedBuilder.js       # Discord embed helpers
+├── commands/             # Slash commands (auto-loaded)
+│   ├── _utils.js         # sendDm, isAdmin helpers
+│   ├── showplayer.js
+│   ├── serverstatus.js
+│   ├── uptime.js
+│   ├── ip.js
+│   ├── ping.js
+│   ├── lastcheck.js
+│   ├── serverinfo.js
+│   ├── zt-request.js     # 🆕
+│   ├── zt-approve.js     # 🆕
+│   ├── zt-deny.js        # 🆕
+│   ├── zt-list.js        # 🆕
+│   └── zt-myinfo.js      # 🆕
+├── zt/                   # 🆕 ZeroTier
+│   ├── api.js            # Central API wrapper
+│   ├── flow.js           # Request/approve/deny logic
+│   └── poller.js         # 60s auto-detect authorizations
+├── storage/              # 🆕 JSON file storage
+│   └── store.js          # readJson, writeJson, appendToArray
+└── web/                  # 🆕 Web dashboard
+    ├── server.js         # HTTP server (built-in, no framework)
+    ├── routes/index.js   # Route handlers
+    └── views/            # HTML templates
+        ├── setup.html
+        ├── dashboard.html
+        ├── guide-public.html
+        └── guide-zerotier.html
 ```
 
-## Cấu trúc project
+## 💾 Runtime data
 
-```
-minecraftserverbot/
-├── src/
-│   ├── index.js          # Main bot entry point
-│   ├── config.js         # Configuration loader
-│   ├── serverChecker.js  # Server polling & state machine
-│   └── embedBuilder.js   # Rich embed message builder
-├── .env                  # Your configuration (gitignored)
-├── .env.example          # Configuration template
-├── package.json
-└── README.md
-```
+Bot tự tạo và quản lý data trong `data/`:
+- `zt-requests.json` — tất cả ZeroTier requests
+- `zt-audit.json` — audit log (approvals, denials, etc.)
+- `web-access.log` — web server access log
+- `setup.log` — setup wizard activity
 
-## Troubleshooting
+Folder này được `.gitignore` (chỉ có `.gitkeep`).
 
-### Bot không phản hồi?
-- Kiểm tra Discord bot token đúng chưa
-- Kiểm tra Channel ID đúng chưa
-- Kiểm tra bot đã được invite vào server chưa
+## 🔒 Bảo mật
 
-### Không lấy được server info?
-- Kiểm tra Minecraft server có online không
-- Kiểm tra server address và port đúng chưa
-- Một số server có thể cần enable query trong server.properties
+- Web dashboard bind `127.0.0.1` (localhost only) theo mặc định
+- KHÔNG public web ra internet trừ khi bạn hiểu rõ rủi ro
+- Nếu cần truy cập từ xa, dùng reverse proxy (Nginx/Caddy) + HTTPS + auth
+- `.env` chứa token — KHÔNG commit, KHÔNG share
+- ZeroTier API token có quyền authorize members — giữ bí mật
 
-### Thông báo spam?
-- Bot sẽ không spam - chỉ thông báo khi trạng thái thay đổi
-- Nếu server unstable (lên xuống liên tục), giảm `POLLING_INTERVAL_MS`
-
-## License
+## 📜 License
 
 MIT
