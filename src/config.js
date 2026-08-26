@@ -39,7 +39,10 @@ export const config = {
 
   // Web dashboard configuration
   web: {
-    enabled: process.env.WEB_ENABLED === 'true',
+    // Default to true if not specified — setup wizard needs it
+    enabled: process.env.WEB_ENABLED === undefined
+      ? true
+      : process.env.WEB_ENABLED === 'true',
     port: parseInt(process.env.WEB_PORT, 10) || 3000,
     host: process.env.WEB_HOST || '127.0.0.1',  // localhost only by default
   },

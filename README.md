@@ -141,4 +141,14 @@ Folder này được `.gitignore` (chỉ có `.gitkeep`).
 
 ## 📜 License
 
-MIT
+MIT — see [LICENSE](LICENSE) file.
+
+## 🤝 Contributing
+
+Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## 🔗 Links
+
+- 🐛 [Report bug](https://github.com/BoyinGlasses/DCB-MC-Bot/issues)
+- 💡 [Request feature](https://github.com/BoyinGlasses/DCB-MC-Bot/issues)
+- 📥 [View source](https://github.com/BoyinGlasses/DCB-MC-Bot)
