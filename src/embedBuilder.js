@@ -232,3 +232,64 @@ export function buildPlayerListEmbed(serverInfo) {
 
   return embed;
 }
+
+/**
+ * Build detailed server info embed for /serverinfo command
+ * Shows version, players, ping, MOTD, sample players — no uptime/state focus.
+ * @param {Object} serverInfo - Server information
+ * @returns {Object} Discord embed object
+ */
+export function buildServerInfoEmbed(serverInfo) {
+  const serverName = cleanMotd(serverInfo.description);
+  const version = serverInfo.version?.name || 'Unknown';
+  const protocol = serverInfo.version?.protocol;
+  const online = serverInfo.players?.online ?? 0;
+  const max = serverInfo.players?.max ?? 0;
+  const latency = serverInfo.latency ?? 0;
+  const sample = serverInfo.players?.sample || [];
+
+  const fields = [
+    {
+      name: '📌 Server Name',
+      value: serverName,
+      inline: false,
+    },
+    {
+      name: '🎮 Version',
+      value: protocol ? `${version} (protocol ${protocol})` : version,
+      inline: true,
+    },
+    {
+      name: '👥 Players',
+      value: `${online} / ${max}`,
+      inline: true,
+    },
+    {
+      name: '📡 Ping',
+      value: `${latency}ms`,
+      inline: true,
+    },
+    {
+      name: '🌐 Address',
+      value: `\`${config.minecraft.host}:${config.minecraft.port}\``,
+      inline: false,
+    },
+  ];
+
+  if (sample.length > 0) {
+    const names = sample.map(p => `• ${p.name || p}`).slice(0, 10).join('\n');
+    fields.push({
+      name: `👤 Sample (${sample.length}${sample.length > 10 ? '+' : ''})`,
+      value: names,
+      inline: false,
+    });
+  }
+
+  return {
+    title: 'ℹ️ Server Info',
+    color: COLORS.ONLINE,
+    fields,
+    footer: { text: 'Minecraft Server Monitor' },
+    timestamp: new Date().toISOString(),
+  };
+}

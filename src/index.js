@@ -1,7 +1,7 @@
 import { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } from 'discord.js';
 import { config, validateConfig } from './config.js';
 import { serverChecker } from './serverChecker.js';
-import { buildOnlineEmbed, buildOfflineEmbed, buildStatusEmbed, buildPlayerListEmbed, formatUptime } from './embedBuilder.js';
+import { buildOnlineEmbed, buildOfflineEmbed, buildStatusEmbed, buildPlayerListEmbed, buildServerInfoEmbed, formatUptime } from './embedBuilder.js';
 
 /**
  * Discord bot client
@@ -45,6 +45,10 @@ async function registerSlashCommands() {
     new SlashCommandBuilder()
       .setName('lastcheck')
       .setDescription('Hiển thị thời điểm bot kiểm tra server lần gần nhất')
+      .toJSON(),
+    new SlashCommandBuilder()
+      .setName('serverinfo')
+      .setDescription('Hiển thị thông tin chi tiết về Minecraft server (version, MOTD, sample players)')
       .toJSON(),
   ];
 
@@ -316,6 +320,33 @@ async function handleSlashCommand(interaction) {
       console.error('[Bot] Error in /lastcheck:', error.message);
       await interaction.editReply({
         content: 'Đã xảy ra lỗi khi lấy thông tin lần kiểm tra.',
+      });
+    }
+  }
+
+  if (commandName === 'serverinfo') {
+    await interaction.deferReply();
+
+    try {
+      const { online, info } = await serverChecker.checkServer();
+
+      if (!online || !info) {
+        await interaction.editReply({
+          embeds: [{
+            title: '🔴 Server OFFLINE',
+            description: 'Không thể lấy thông tin chi tiết vì server đang offline.',
+            color: 0xff0000,
+          }],
+        });
+        return;
+      }
+
+      const embed = buildServerInfoEmbed(info);
+      await interaction.editReply({ embeds: [embed] });
+    } catch (error) {
+      console.error('[Bot] Error in /serverinfo:', error.message);
+      await interaction.editReply({
+        content: 'Đã xảy ra lỗi khi lấy thông tin server.',
       });
     }
   }
