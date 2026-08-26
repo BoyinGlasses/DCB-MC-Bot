@@ -8,13 +8,15 @@ Discord bot thông báo khi Minecraft server (Fabric) online/offline, kèm rich 
   - Server Name (MOTD)
   - Minecraft Version
   - Số người chơi đang online
-  - Danh sách người chơi
   - Ping/Latency
   - Server Address
   - Uptime
 - 🔴 Thông báo khi server offline
 - ⏱️ Không spam - chỉ thông báo khi trạng thái thay đổi
 - 🔧 Dễ cấu hình qua file `.env`
+- 🎮 Slash commands:
+  - `/showplayer` - Xem danh sách người chơi đang online
+  - `/serverstatus` - Kiểm tra trạng thái server
 
 ## Yêu cầu
 

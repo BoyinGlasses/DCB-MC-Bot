@@ -1,7 +1,7 @@
-import { Client, GatewayIntentBits } from 'discord.js';
+import { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } from 'discord.js';
 import { config, validateConfig } from './config.js';
 import { serverChecker } from './serverChecker.js';
-import { buildOnlineEmbed, buildOfflineEmbed, buildStatusEmbed } from './embedBuilder.js';
+import { buildOnlineEmbed, buildOfflineEmbed, buildStatusEmbed, buildPlayerListEmbed } from './embedBuilder.js';
 
 /**
  * Discord bot client
@@ -11,6 +11,91 @@ const client = new Client({
     GatewayIntentBits.Guilds,
   ],
 });
+
+/**
+ * REST API for slash commands
+ */
+const rest = new REST({ version: '10' }).setToken(config.discord.token);
+
+/**
+ * Register slash commands
+ */
+async function registerSlashCommands() {
+  const commands = [
+    new SlashCommandBuilder()
+      .setName('showplayer')
+      .setDescription('Hiển thị danh sách người chơi đang online trên server')
+      .toJSON(),
+    new SlashCommandBuilder()
+      .setName('serverstatus')
+      .setDescription('Kiểm tra trạng thái hiện tại của Minecraft server')
+      .toJSON(),
+  ];
+
+  try {
+    await rest.put(
+      Routes.applicationCommands(client.user.id),
+      { body: commands }
+    );
+    console.log('[Discord] Slash commands registered successfully');
+  } catch (error) {
+    console.error('[Discord] Failed to register slash commands:', error.message);
+  }
+}
+
+/**
+ * Handle slash command interactions
+ */
+async function handleSlashCommand(interaction) {
+  const { commandName } = interaction;
+
+  if (commandName === 'showplayer') {
+    await interaction.deferReply();
+
+    try {
+      const { online, info } = await serverChecker.checkServer();
+
+      if (!online || !info) {
+        await interaction.editReply({
+          embeds: [{
+            title: '🔴 Server OFFLINE',
+            description: 'Server hiện không online.',
+            color: 0xff0000,
+          }],
+        });
+        return;
+      }
+
+      const embed = buildPlayerListEmbed(info);
+      await interaction.editReply({ embeds: [embed] });
+    } catch (error) {
+      console.error('[Bot] Error in /showplayer:', error.message);
+      await interaction.editReply({
+        content: 'Đã xảy ra lỗi khi lấy thông tin server.',
+      });
+    }
+  }
+
+  if (commandName === 'serverstatus') {
+    await interaction.deferReply();
+
+    try {
+      const { online, info } = await serverChecker.checkServer();
+
+      if (online && info) {
+        const uptime = serverChecker.getUptime();
+        await interaction.editReply({ embeds: [buildOnlineEmbed(info, uptime)] });
+      } else {
+        await interaction.editReply({ embeds: [buildOfflineEmbed(new Date())] });
+      }
+    } catch (error) {
+      console.error('[Bot] Error in /serverstatus:', error.message);
+      await interaction.editReply({
+        content: 'Đã xảy ra lỗi khi lấy thông tin server.',
+      });
+    }
+  }
+}
 
 /**
  * Discord channel reference
@@ -111,6 +196,9 @@ function stopPolling() {
 client.on('ready', async () => {
   console.log(`[Discord] Bot logged in as ${client.user.tag}`);
 
+  // Register slash commands
+  await registerSlashCommands();
+
   // Find target channel
   const channel = client.channels.cache.get(config.discord.channelId);
   
@@ -141,6 +229,14 @@ client.on('ready', async () => {
  */
 client.on('error', (error) => {
   console.error('[Discord] Bot error:', error.message);
+});
+
+/**
+ * Handle slash command interactions
+ */
+client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
+  await handleSlashCommand(interaction);
 });
 
 /**

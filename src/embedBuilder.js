@@ -114,16 +114,6 @@ export function buildOnlineEmbed(serverInfo, uptimeMs) {
     inline: true,
   });
 
-  // Player List (if any players online)
-  if (serverInfo.players?.sample && serverInfo.players.sample.length > 0) {
-    const playerList = formatPlayerList(serverInfo.players.sample);
-    embed.fields.push({
-      name: '   Players Online',
-      value: playerList,
-      inline: false,
-    });
-  }
-
   // Latency / Ping
   const latency = serverInfo.latency ?? 0;
   embed.fields.push({
@@ -201,4 +191,44 @@ export function buildStatusEmbed(status) {
       text: 'Minecraft Server Monitor',
     },
   };
+}
+
+/**
+ * Build player list embed for /showplayer command
+ * @param {Object} serverInfo - Server information
+ * @returns {Object} Discord embed object
+ */
+export function buildPlayerListEmbed(serverInfo) {
+  const players = serverInfo.players?.sample || [];
+  const online = serverInfo.players?.online ?? 0;
+
+  const embed = {
+    title: `👥 Danh sách người chơi (${online})`,
+    color: COLORS.ONLINE,
+    timestamp: new Date().toISOString(),
+    fields: [],
+    footer: {
+      text: 'Minecraft Server Monitor',
+    },
+  };
+
+  if (players.length === 0) {
+    if (online === 0) {
+      embed.description = 'Không có ai đang chơi.';
+    } else {
+      embed.description = `${online} người đang chơi (danh sách bị ẩn).`;
+    }
+  } else {
+    // Group players by first letter for easier reading
+    const sortedPlayers = players.map(p => p.name || p).sort();
+    const playerList = sortedPlayers.map(name => `• ${name}`).join('\n');
+
+    embed.fields.push({
+      name: ' ',
+      value: playerList,
+      inline: false,
+    });
+  }
+
+  return embed;
 }
