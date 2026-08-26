@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Wizard - Minecraft Server Bot</title>
+  <link rel="stylesheet" href="/vendor/pico.min.css">
+  <link rel="stylesheet" href="/static/css/custom.css">
+  <script src="/vendor/htmx.min.js"></script>
+</head>
+<body>
+  <header class="mc-header">
+    <div class="container">
+      <h1>
+        Setup Wizard
+        <small>Minecraft Server Discord Bot - First-time Configuration</small>
+      </h1>
+    </div>
+  </header>
+
+  <main class="container">
+    <article>
+      <header>
+        <h2>⚙️ Cấu hình bot</h2>
+        <p>Điền các thông tin bên dưới. File <code>.env</code> sẽ được tạo tự động.</p>
+      </header>
+
+      <form hx-post="/api/setup/save" hx-target="#result" hx-swap="innerHTML" hx-indicator="#spinner">
+
+        <fieldset>
+          <legend><strong>📡 Discord</strong></legend>
+
+          <label>
+            Bot Token
+            <input type="password" name="discord_token" value="{{currentDiscordToken}}" placeholder="MTE...xxx" required>
+            <small>Lấy từ <a href="https://discord.com/developers/applications" target="_blank">Discord Developer Portal</a> → Bot → Reset Token</small>
+          </label>
+
+          <label>
+            Channel ID
+            <input type="text" name="discord_channel_id" value="{{currentChannelId}}" placeholder="123456789012345678" required>
+            <small>Channel để bot gửi thông báo online/offline</small>
+          </label>
+
+          <label>
+            Admin Discord User IDs
+            <input type="text" name="admin_ids" value="{{currentAdminIds}}" placeholder="123456789012345678,987654321098765432">
+            <small>Ngăn cách bằng dấu phẩy. Những user này có thể duyệt ZeroTier requests.</small>
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend><strong>🎮 Minecraft Server</strong></legend>
+
+          <label>
+            Server Host
+            <input type="text" name="mc_host" value="{{currentMcHost}}" placeholder="192.168.1.100 hoặc mc.example.com" required>
+            <small>IP/hostname mà bot sẽ poll để check status</small>
+          </label>
+
+          <label>
+            Server Port
+            <input type="number" name="mc_port" value="{{currentMcPort}}" placeholder="25565" required>
+          </label>
+
+          <label>
+            Exposure Mode
+            <select name="exposure_mode">
+              <option value="public" {{!isPublicMode}}>Public - Server có thể truy cập từ internet</option>
+              <option value="private" {{!isPrivateMode}}>Private - Cần ZeroTier để player join</option>
+            </select>
+            <small>Public: player connect thẳng tới IP. Private: server ở sau NAT, cần ZeroTier tunnel.</small>
+          </label>
+
+          <label>
+            Public Hostname/IP (cho player connect)
+            <input type="text" name="public_host" value="{{currentPublicHost}}" placeholder="mc.example.com hoặc để trống = dùng MC host">
+            <small>Địa chỉ mà player sẽ paste vào Minecraft</small>
+          </label>
+        </fieldset>
+
+        <fieldset id="zt-section">
+          <legend><strong>🌐 ZeroTier (chỉ cần khi Private mode)</strong></legend>
+
+          <label>
+            <input type="checkbox" name="zt_enabled" value="true" {{!isZtEnabledChecked}}>
+            Bật ZeroTier
+          </label>
+
+          <label>
+            ZeroTier Central API Token
+            <input type="password" name="zt_token" value="{{currentZtToken}}" placeholder="ZeroTier API token">
+            <small>Lấy từ <a href="https://my.zerotier.com/account" target="_blank">my.zerotier.com → Account → API Tokens</a></small>
+          </label>
+
+          <label>
+            ZeroTier Network ID
+            <input type="text" name="zt_network_id" value="{{currentZtNetworkId}}" placeholder="a1b2c3d4e5f6g7h8">
+            <small>16 ký tự hex. Tìm ở <a href="https://my.zerotier.com/networks" target="_blank">my.zerotier.com → Networks</a></small>
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend><strong>🖥️ Web Dashboard</strong></legend>
+
+          <label>
+            <input type="checkbox" name="web_enabled" value="true" {{!isWebEnabledChecked}}>
+            Bật Web Dashboard
+          </label>
+
+          <label>
+            Bind Host
+            <input type="text" name="web_host" value="{{currentWebHost}}" placeholder="127.0.0.1">
+            <small>Để <code>127.0.0.1</code> cho an toàn. Đổi thành <code>0.0.0.0</code> nếu muốn truy cập từ máy khác trong LAN.</small>
+          </label>
+
+          <label>
+            Web Port
+            <input type="number" name="web_port" value="{{currentWebPort}}" placeholder="3000">
+          </label>
+        </fieldset>
+
+        <div role="group">
+          <button type="submit">💾 Lưu .env</button>
+          <span id="spinner" class="htmx-indicator" aria-busy="true">Đang lưu...</span>
+        </div>
+      </form>
+
+      <div id="result"></div>
+    </article>
+
+    <article>
+      <header>
+        <h3>📚 Hướng dẫn lấy thông tin</h3>
+      </header>
+      <details>
+        <summary>Discord Bot Token</summary>
+        <ol>
+          <li>Vào <a href="https://discord.com/developers/applications" target="_blank">Discord Developer Portal</a></li>
+          <li>Tạo <strong>New Application</strong> → đặt tên</li>
+          <li>Vào tab <strong>Bot</strong> → click <strong>Reset Token</strong></li>
+          <li>Copy token (chỉ hiện 1 lần!)</li>
+          <li>Bật <strong>Message Content Intent</strong> ở phía dưới</li>
+        </ol>
+      </details>
+      <details>
+        <summary>Channel ID</summary>
+        <ol>
+          <li>Mở Discord → Settings → Advanced → bật <strong>Developer Mode</strong></li>
+          <li>Right-click channel muốn bot gửi thông báo → <strong>Copy Channel ID</strong></li>
+        </ol>
+      </details>
+      <details>
+        <summary>ZeroTier Network ID</summary>
+        <ol>
+          <li>Tạo account tại <a href="https://my.zerotier.com" target="_blank">my.zerotierier.com</a></li>
+          <li>Tạo <strong>Network</strong> mới</li>
+          <li>Copy <strong>Network ID</strong> (16 ký tự hex)</li>
+          <li>Trong <strong>Settings</strong> → tạo <strong>API Token</strong></li>
+        </ol>
+      </details>
+    </article>
+  </main>
+
+  <footer class="mc-footer">
+    <p>Minecraft Server Discord Bot v2.0 · Setup Wizard</p>
+  </footer>
+</body>
+</html>

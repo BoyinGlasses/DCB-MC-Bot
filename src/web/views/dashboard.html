@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Minecraft Server Bot</title>
+  <link rel="stylesheet" href="/vendor/pico.min.css">
+  <link rel="stylesheet" href="/static/css/custom.css">
+  <script src="/vendor/htmx.min.js"></script>
+  <style>
+    .grid-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  </style>
+</head>
+<body>
+  <header class="mc-header">
+    <div class="container">
+      <h1>
+        Dashboard
+        <small>Minecraft Server Bot v2.0</small>
+      </h1>
+    </div>
+  </header>
+
+  <main class="container">
+    <nav class="mc-nav">
+      <ul>
+        <li><a href="/" class="active">📊 Dashboard</a></li>
+        <li><a href="/setup">⚙️ Setup</a></li>
+        <li><a href="/guide">📜 Guide</a></li>
+      </ul>
+    </nav>
+
+    <div hx-get="/api/status" hx-trigger="load, every 10s" hx-swap="innerHTML" hx-target="#status-panel">
+      <article aria-busy="true">Đang tải status...</article>
+    </div>
+
+    <div id="status-panel"></div>
+
+    <article>
+      <header>
+        <h3>🔗 Links hữu ích</h3>
+      </header>
+      <ul>
+        <li><a href="/setup">Setup Wizard</a> - chỉnh sửa cấu hình bot</li>
+        <li><a href="/guide">Player Guide</a> - trang cho player mới join server</li>
+        <li><a href="/api/status" target="_blank">/api/status (JSON)</a> - raw status data</li>
+      </ul>
+    </article>
+  </main>
+
+  <footer class="mc-footer">
+    <p>Dashboard auto-refresh mỗi 10 giây · Exposure mode: <code>{{exposureMode}}</code></p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Join Server (ZeroTier) - Hướng dẫn cho Player</title>
+  <link rel="stylesheet" href="/vendor/pico.min.css">
+  <link rel="stylesheet" href="/static/css/custom.css">
+</head>
+<body>
+  <header class="mc-header">
+    <div class="container">
+      <h1>
+        {{serverName}}
+        <small>Hướng dẫn kết nối qua ZeroTier</small>
+      </h1>
+    </div>
+  </header>
+
+  <main class="container">
+    <article>
+      <header>
+        <h2>🌐 Server yêu cầu ZeroTier</h2>
+        <p>Server này ở sau NAT/firewall, không thể truy cập trực tiếp. Bạn cần cài <strong>ZeroTier</strong> để kết nối.</p>
+        <p><mark>Quá trình mất khoảng 5-10 phút</mark></p>
+      </header>
+    </article>
+
+    <div class="guide-step">
+      <h3><span class="step-num">1</span> Tải ZeroTier</h3>
+      <p>Truy cập: <a href="https://www.zerotier.com/download/" target="_blank">https://www.zerotier.com/download/</a></p>
+      <p>Tải phiên bản phù hợp với hệ điều hành của bạn (Windows/Mac/Linux).</p>
+    </div>
+
+    <div class="guide-step">
+      <h3><span class="step-num">2</span> Tạo tài khoản (miễn phí)</h3>
+      <p>Đăng ký tại: <a href="https://my.zerotier.com/" target="_blank">https://my.zerotierier.com/</a></p>
+      <p>Chỉ cần email, không cần thẻ tín dụng.</p>
+    </div>
+
+    <div class="guide-step">
+      <h3><span class="step-num">3</span> Join Network</h3>
+      <p>Mở ZeroTier client → paste Network ID bên dưới → click <strong>Join Network</strong>:</p>
+      <p><strong>Network ID:</strong></p>
+      <code class="code-block" id="zt-network-id">{{ztNetworkId}}</code>
+      <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('zt-network-id').textContent.trim())">📋 Copy</button>
+    </div>
+
+    <div class="guide-step">
+      <h3><span class="step-num">4</span> Lấy ZeroTier ID của bạn</h3>
+      <p>Mở ZeroTier client → copy <strong>Node ID</strong> (10 ký tự hex, vd: <code>a1b2c3d4e5</code>).</p>
+      <p>Trên Windows: click phải vào ZeroTier icon ở system tray → <strong>Show Details</strong> → copy Node ID.</p>
+    </div>
+
+    <div class="guide-step">
+      <h3><span class="step-num">5</span> Gửi yêu cầu cho bot</h3>
+      <p>Mở Discord → tìm <strong>{{serverName}} Bot</strong> → nhắn:</p>
+      <code class="code-block">/zt-request zt-id:&lt;your-zt-id&gt; mc-username:&lt;your-mc-name&gt;</code>
+      <p>VD: <code>/zt-request zt-id:a1b2c3d4e5f6g7h8 mc-username:Steve</code></p>
+    </div>
+
+    <div class="guide-step">
+      <h3><span class="step-num">6</span> Đợi admin duyệt</h3>
+      <p>Admin sẽ duyệt yêu cầu của bạn (thường trong vài phút đến vài giờ).</p>
+      <p>Bot sẽ tự động DM cho bạn <strong>địa chỉ IP để kết nối</strong> khi được duyệt.</p>
+    </div>
+
+    <div class="guide-step">
+      <h3><span class="step-num">7</span> Kết nối Minecraft</h3>
+      <p>Sau khi nhận IP từ bot:</p>
+      <ol>
+        <li>Mở Minecraft Java Edition</li>
+        <li>Multiplayer → Add Server</li>
+        <li>Server Address: paste IP từ bot (vd: <code>10.x.x.x:25565</code>)</li>
+        <li>Click <strong>Join Server</strong></li>
+      </ol>
+      <p>🎉 Xong! Chúc bạn chơi vui vẻ!</p>
+    </div>
+
+    <article>
+      <header>
+        <h3>🆘 Troubleshooting</h3>
+      </header>
+      <details>
+        <summary>ZeroTier không connect được?</summary>
+        <ul>
+          <li>Check firewall/antivirus có chặn ZeroTier không</li>
+          <li>Thử restart ZeroTier service</li>
+          <li>Đợi 1-2 phút để ZeroTier handshake</li>
+        </ul>
+      </details>
+      <details>
+        <summary>Bot không phản hồi /zt-request?</summary>
+        <ul>
+          <li>Check bot đang online (status xanh)</li>
+          <li>Bạn đã join ZeroTier network chưa?</li>
+          <li>ZeroTier ID phải đúng 16 ký tự hex</li>
+        </ul>
+      </details>
+      <details>
+        <summary>Đã được duyệt nhưng không connect được Minecraft?</summary>
+        <ul>
+          <li>Check ZeroTier vẫn online (icon xanh)</li>
+          <li>IP từ bot phải là IP trong ZeroTier network (10.x.x.x)</li>
+          <li>Restart Minecraft client</li>
+        </ul>
+      </details>
+    </article>
+  </main>
+
+  <footer class="mc-footer">
+    <p>Minecraft Server Bot v2.0 · ZeroTier Guide</p>
+  </footer>
+</body>
+</html>

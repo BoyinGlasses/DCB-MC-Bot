@@ -1,7 +1,7 @@
 {
   "name": "minecraft-server-discord-bot",
-  "version": "1.0.0",
-  "description": "Discord bot that notifies when Minecraft server goes online/offline",
+  "version": "2.0.0",
+  "description": "Discord bot that monitors Minecraft server + web dashboard + optional ZeroTier flow",
   "main": "src/index.js",
   "type": "module",
   "scripts": {
@@ -13,13 +13,16 @@
     "discord-bot",
     "minecraft",
     "minecraft-server",
-    "status-notifier"
+    "status-notifier",
+    "zerotier",
+    "web-dashboard"
   ],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "discord.js": "^14.15.0",
     "dotenv": "^16.4.5",
-    "minecraft-server-util": "^5.4.3"
+    "minecraft-server-util": "^5.4.3",
+    "undici": "^6.0.0"
   }
 }
